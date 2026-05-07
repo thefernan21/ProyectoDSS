@@ -136,15 +136,26 @@
       <a href="index.php?accion=ver_docentes"           class="nav-link <?= ($accionActual??'')==='ver_docentes'           ?'active':'' ?>"><span class="icon">👨‍🏫</span> Docentes</a>
       <a href="index.php?accion=ver_materias"           class="nav-link <?= ($accionActual??'')==='ver_materias'           ?'active':'' ?>"><span class="icon">📚</span> Materias</a>
       <a href="index.php?accion=ver_grupos"             class="nav-link <?= ($accionActual??'')==='ver_grupos'             ?'active':'' ?>"><span class="icon">🏫</span> Grupos</a>
+      <a href="index.php?accion=importar_horario"       class="nav-link <?= ($accionActual??'')==='importar_horario'       ?'active':'' ?>"><span class="icon">📋</span> Importar Horario</a>
       <a href="index.php?accion=calificaciones_admin"   class="nav-link <?= ($accionActual??'')==='calificaciones_admin'   ?'active':'' ?>"><span class="icon">📋</span> Calificaciones</a>
 
     <?php elseif ($rol === 'Docente'): ?>
-      <div class="nav-section-label">Docente</div>
+      <div class="nav-section-label">General</div>
       <a href="index.php?accion=panel_docente"          class="nav-link <?= ($accionActual??'')==='panel_docente'          ?'active':'' ?>"><span class="icon">🏠</span> Mi Panel</a>
-      <a href="index.php?accion=pasar_lista"            class="nav-link <?= ($accionActual??'')==='pasar_lista'            ?'active':'' ?>"><span class="icon">✅</span> Sesión de Clase</a>
-      <a href="index.php?accion=historial_grupo"        class="nav-link <?= ($accionActual??'')==='historial_grupo'        ?'active':'' ?>"><span class="icon">📅</span> Historial Grupo</a>
-      <a href="index.php?accion=unidades_docente"       class="nav-link <?= ($accionActual??'')==='unidades_docente'       ?'active':'' ?>"><span class="icon">📖</span> Unidades</a>
-      <a href="index.php?accion=calificaciones_docente" class="nav-link <?= ($accionActual??'')==='calificaciones_docente' ?'active':'' ?>"><span class="icon">📊</span> Calificaciones</a>
+      <a href="index.php?accion=calendario_docente"      class="nav-link <?= ($accionActual??'')==='calendario_docente'      ?'active':'' ?>"><span class="icon">📆</span> Calendario</a>
+      <a href="index.php?accion=horario_docente"         class="nav-link <?= ($accionActual??'')==='horario_docente'         ?'active':'' ?>"><span class="icon">🗓</span> Mi Horario</a>
+
+      <div class="nav-section-label" style="margin-top:10px;">Grupos</div>
+      <a href="index.php?accion=grupos_panel_docente"    class="nav-link <?= ($accionActual??'')==='grupos_panel_docente'    ?'active':'' ?>"><span class="icon">🏫</span> Mis Grupos</a>
+      <a href="index.php?accion=mis_grupos_docente"      class="nav-link <?= ($accionActual??'')==='mis_grupos_docente'      ?'active':'' ?>"><span class="icon">➕</span> Crear Grupo</a>
+      <a href="index.php?accion=historial_grupo"         class="nav-link <?= ($accionActual??'')==='historial_grupo'         ?'active':'' ?>"><span class="icon">📅</span> Historial</a>
+      <a href="index.php?accion=importar_horario_docente" class="nav-link <?= ($accionActual??'')==='importar_horario_docente' ?'active':'' ?>"><span class="icon">📋</span> Importar Horario</a>
+
+      <div class="nav-section-label" style="margin-top:10px;">Clases</div>
+      <a href="index.php?accion=pasar_lista"             class="nav-link <?= ($accionActual??'')==='pasar_lista'             ?'active':'' ?>"><span class="icon">✅</span> Sesión de Clase</a>
+      <a href="index.php?accion=editar_asistencias"      class="nav-link <?= ($accionActual??'')==='editar_asistencias'      ?'active':'' ?>"><span class="icon">✏️</span> Editar Asistencias</a>
+      <a href="index.php?accion=calificaciones_docente"  class="nav-link <?= ($accionActual??'')==='calificaciones_docente'  ?'active':'' ?>"><span class="icon">📊</span> Calificaciones</a>
+      <a href="index.php?accion=unidades_docente"        class="nav-link <?= ($accionActual??'')==='unidades_docente'        ?'active':'' ?>"><span class="icon">📖</span> Unidades</a>
 
     <?php elseif ($rol === 'Alumno'): ?>
       <div class="nav-section-label">Alumno</div>

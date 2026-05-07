@@ -323,5 +323,107 @@ class AdminController {
         $stmt->execute([$idGrupo]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    // ══ IMPORTAR HORARIO DESDE TABLA PEGADA ══════════════════
+
+    public function importarHorarioView() {
+        require_once BASE_PATH . '/app/models/Horario.php';
+        $docentes = $this->pdo->query(
+            "SELECT id_docente, nombre FROM docentes WHERE id_usuario IS NOT NULL ORDER BY nombre"
+        )->fetchAll(PDO::FETCH_ASSOC);
+        $materias = (new Materia($this->pdo))->obtenerTodas();
+        // Grupos existentes para detectar duplicados en el front
+        $gruposExistentes = $this->pdo->query(
+            "SELECT g.nombre_grupo, m.clave_materia
+             FROM grupos g JOIN materias m ON m.id_materia = g.id_materia"
+        )->fetchAll(PDO::FETCH_ASSOC);
+        require_once BASE_PATH . '/app/views/admin/importar_horario.php';
+    }
+
+    public function procesarImportarHorario($datos) {
+        require_once BASE_PATH . '/app/models/Horario.php';
+        require_once BASE_PATH . '/app/models/Unidad.php';
+
+        $gruposJson = json_decode($datos['grupos_json'] ?? '[]', true);
+        $periodo    = trim($datos['periodo']   ?? '');
+        $numUnid    = (int)($datos['num_unidades'] ?? 4);
+        $idDocente  = (int)($datos['id_docente']   ?? 0);
+
+        if (empty($gruposJson) || !$periodo || !$idDocente) {
+            $mensaje = '❌ Datos incompletos.'; $tipoMensaje = 'danger';
+            return $this->importarHorarioView();
+        }
+
+        $modeloMateria = new Materia($this->pdo);
+        $modeloUnidad  = new Unidad($this->pdo);
+        $modeloHorario = new Horario($this->pdo);
+        $creados = 0; $actualizados = 0;
+
+        foreach ($gruposJson as $g) {
+            $clave   = strtoupper(trim($g['clave']   ?? ''));
+            $nombre  = trim($g['materia'] ?? '');
+            $grupo   = trim($g['grupo']   ?? '');
+            $horarios = $g['horarios'] ?? [];
+            if (!$clave || !$nombre || !$grupo) continue;
+
+            $this->pdo->beginTransaction();
+            try {
+                // 1. Crear o recuperar materia
+                $stmtM = $this->pdo->prepare(
+                    "SELECT id_materia FROM materias WHERE clave_materia = ? LIMIT 1"
+                );
+                $stmtM->execute([$clave]);
+                $row = $stmtM->fetch(PDO::FETCH_ASSOC);
+                if ($row) {
+                    $idMateria = (int)$row['id_materia'];
+                } else {
+                    $this->pdo->prepare(
+                        "INSERT INTO materias (clave_materia, nombre) VALUES (?, ?)"
+                    )->execute([$clave, $nombre]);
+                    $idMateria = (int)$this->pdo->lastInsertId();
+                }
+
+                // 2. Crear o recuperar grupo
+                $stmtG = $this->pdo->prepare(
+                    "SELECT id_grupo FROM grupos
+                     WHERE nombre_grupo = ? AND id_materia = ? AND id_docente = ? LIMIT 1"
+                );
+                $stmtG->execute([$grupo, $idMateria, $idDocente]);
+                $rowG = $stmtG->fetch(PDO::FETCH_ASSOC);
+                if ($rowG) {
+                    $idGrupo = (int)$rowG['id_grupo'];
+                    $actualizados++;
+                } else {
+                    $this->pdo->prepare(
+                        "INSERT INTO grupos (id_materia, id_docente, nombre_grupo, periodo, num_unidades)
+                         VALUES (?, ?, ?, ?, ?)"
+                    )->execute([$idMateria, $idDocente, $grupo, $periodo, $numUnid]);
+                    $idGrupo = (int)$this->pdo->lastInsertId();
+                    $modeloUnidad->crearParaGrupo($idGrupo, $numUnid);
+                    $creados++;
+                }
+
+                // 3. Guardar horario (reemplaza el anterior)
+                if (!empty($horarios)) {
+                    $modeloHorario->guardarParaGrupo($idGrupo, $horarios);
+                }
+
+                $this->pdo->commit();
+            } catch (PDOException $e) {
+                $this->pdo->rollBack();
+                // Continuar con los demás grupos
+            }
+        }
+
+        $mensaje     = "✅ Proceso completado: $creados grupos nuevos creados · $actualizados horarios actualizados.";
+        $tipoMensaje = 'success';
+        $docentes    = $this->pdo->query("SELECT id_docente, nombre FROM docentes ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+        $materias    = (new Materia($this->pdo))->obtenerTodas();
+        $gruposExistentes = $this->pdo->query(
+            "SELECT g.nombre_grupo, m.clave_materia FROM grupos g JOIN materias m ON m.id_materia = g.id_materia"
+        )->fetchAll(PDO::FETCH_ASSOC);
+        require_once BASE_PATH . '/app/views/admin/importar_horario.php';
+    }
+
 }
 ?>
